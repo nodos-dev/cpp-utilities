@@ -292,35 +292,35 @@ struct SharedFactory : std::enable_shared_from_this<T>
 template<class T = uint64_t>
 struct CircularIndex
 {
-    T val;
-    T max;
+    T Val;
+    T Max;
 
-    explicit CircularIndex(T max) : val(0), max((uint64_t)max)
+    explicit CircularIndex(T max) : Val(0), Max((uint64_t)max)
     {
     }
     
     CircularIndex& operator=(T max)
     {
-        val = 0;
+        Val = 0;
 		this->max = (uint64_t)max;
         return *this;
     }
 
     uint64_t operator++()
 	{
-        return val = (val+1) % max;
+        return Val = (Val+1) % Max;
     }
 
     uint64_t operator++(int)
     {
-		uint64_t ret = val % max;
-		val = (val + 1) % max;
+		uint64_t ret = Val % Max;
+		Val = (Val + 1) % Max;
         return ret;
     }
 
     operator uint64_t() const
     {
-        return val % max;
+        return Val % Max;
     }
 };
 

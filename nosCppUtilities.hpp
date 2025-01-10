@@ -290,19 +290,19 @@ struct Nullable
 		return Ptr == &other;
 	}
 
-	T* operator->() 
+	T* operator->() const
 	{
 		assert(Checked);
 		return Ptr;
 	}
 
-	T& operator*()
+	T& operator*() const
 	{
 		assert(Checked);
 		return *Ptr;
 	}
 
-	T* GetPtr()
+	T* GetPtr() const
 	{
 		return Ptr;
 	}

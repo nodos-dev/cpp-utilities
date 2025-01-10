@@ -233,7 +233,7 @@ template <typename T>
 struct Nullable
 {
 	Nullable(T* t) : Ptr(t) {}
-	operator bool()
+	operator bool() const
 	{
 #ifndef NDEBUG
 		Checked = true;
@@ -310,7 +310,7 @@ struct Nullable
 protected:
 	T* Ptr;
 #ifndef NDEBUG
-	bool Checked = false;
+	mutable bool Checked = false;
 #endif
 };
 

@@ -274,6 +274,17 @@ struct Nullable
 	{
 		return Ptr == other;
 	}
+
+	bool operator==(const T* other) const
+	{
+		return Ptr == other;
+	}
+
+	bool operator==(const T& other) const
+	{
+		return Ptr == &other;
+	}
+
 	T* operator->() 
 	{
 		assert(Checked);

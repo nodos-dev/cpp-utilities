@@ -216,11 +216,15 @@ struct Ref : std::reference_wrapper<T>
 	Ref(T& t) : std::reference_wrapper<T>(t) {}
 
 	T* operator->() const noexcept { return &this->get(); }
-	T& operator*() const noexcept { return this->get(); }
-	T* operator&() const noexcept { return &this->get(); }
 	T* operator->() noexcept { return &this->get(); }
+
+	T& operator*() const noexcept { return this->get(); }
 	T& operator*() noexcept { return this->get(); }
+	
+	T* operator&() const noexcept { return &this->get(); }
 	T* operator&() noexcept { return &this->get(); }
+
+	Ref* ThisPtr() { return this; }
 
 	bool operator==(const Ref<T>& other) const { return &this->get() == &other.get(); }
 };

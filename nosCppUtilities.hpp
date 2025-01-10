@@ -238,34 +238,34 @@ struct Nullable
 
 	template <typename U>
 	requires std::is_convertible_v<U*, T*>
-	Nullable(const Nullable<U>& other) : Ptr(other.Ptr)
+	Nullable(const Nullable<U>& other) : Ptr(other.GetPtr())
 	{
 	}
 	template <typename U>
 	requires std::is_convertible_v<U*, T*>
-	Nullable(Nullable<U>&& other) noexcept : Ptr(other.Ptr)
+	Nullable(Nullable<U>&& other) noexcept : Ptr(other.GetPtr())
 	{
 	}
 	template <typename U>
 	requires std::is_convertible_v<U*, T*>
 	Nullable& operator=(const Nullable<U>& other)
 	{
-		Ptr = other.Ptr;
+		Ptr = other.GetPtr();
 		return *this;
 	}
 	template <typename U>
 	requires std::is_convertible_v<U*, T*>
 	Nullable& operator=(Nullable<U>&& other)
 	{
-		Ptr = other.Ptr;
+		Ptr = other.GetPtr();
 		return *this;
 	}
 
 	template <typename U>
 	requires std::is_convertible_v<U*, T*>
-	bool operator==(const Nullable<U>& other) const
+	bool operator==(Nullable<U const> other) const
 	{
-		return Ptr == other.Ptr;
+		return Ptr == other.GetPtr();
 	}
 
 	template <typename U>

@@ -213,6 +213,7 @@ template <class T>
 struct Ref : std::reference_wrapper<T>
 {
 	using std::reference_wrapper<T>::reference_wrapper;
+	Ref(T& t) : std::reference_wrapper<T>(t) {}
 
 	T* operator->() const noexcept { return &this->get(); }
 	T& operator*() const noexcept { return this->get(); }

@@ -209,6 +209,95 @@ requires(std::is_constructible_v<T, Args...>)
     return std::make_unique<T>(std::forward<Args>(args)...);
 }
 
+template <class T>
+struct Ref : std::reference_wrapper<T>
+{
+	using std::reference_wrapper<T>::reference_wrapper;
+
+	T* operator->() const noexcept { return &this->get(); }
+	T& operator*() const noexcept { return this->get(); }
+	T* operator&() const noexcept { return &this->get(); }
+	T* operator->() noexcept { return &this->get(); }
+	T& operator*() noexcept { return this->get(); }
+	T* operator&() noexcept { return &this->get(); }
+
+	bool operator==(const Ref<T>& other) const { return &this->get() == &other.get(); }
+};
+
+template <typename T>
+struct Nullable
+{
+	Nullable(T* t) : Ptr(t) {}
+	operator bool()
+	{
+#ifndef NDEBUG
+		Checked = true;
+#endif
+		return Ptr;
+	}
+
+	template <typename U>
+	requires std::is_convertible_v<U*, T*>
+	Nullable(const Nullable<U>& other) : Ptr(other.Ptr)
+	{
+	}
+	template <typename U>
+	requires std::is_convertible_v<U*, T*>
+	Nullable(Nullable<U>&& other) noexcept : Ptr(other.Ptr)
+	{
+	}
+	template <typename U>
+	requires std::is_convertible_v<U*, T*>
+	Nullable& operator=(const Nullable<U>& other)
+	{
+		Ptr = other.Ptr;
+		return *this;
+	}
+	template <typename U>
+	requires std::is_convertible_v<U*, T*>
+	Nullable& operator=(Nullable<U>&& other)
+	{
+		Ptr = other.Ptr;
+		return *this;
+	}
+
+	template <typename U>
+	requires std::is_convertible_v<U*, T*>
+	bool operator==(const Nullable<U>& other) const
+	{
+		return Ptr == other.Ptr;
+	}
+
+	template <typename U>
+	requires std::is_convertible_v<U*, T*>
+	bool operator==(const U* other) const
+	{
+		return Ptr == other;
+	}
+	T* operator->() 
+	{
+		assert(Checked);
+		return Ptr;
+	}
+
+	T& operator*()
+	{
+		assert(Checked);
+		return *Ptr;
+	}
+
+	T* GetPtr()
+	{
+		return Ptr;
+	}
+
+protected:
+	T* Ptr;
+#ifndef NDEBUG
+	bool Checked = false;
+#endif
+};
+
 template<class T, template<class...> class U>
 struct SpecializationOf : std::false_type {  };
 
@@ -372,3 +461,18 @@ private:
 };
 
 } // namespace nos
+
+namespace std
+{
+// Hash for Ref and Nullable
+template <class T>
+struct hash<::nos::Ref<T>>
+{
+	std::size_t operator()(const ::nos::Ref<T>& r) const { return std::hash<T*>{}(&r.get()); }
+};
+template <class T>
+struct hash<::nos::Nullable<T>>
+{
+	std::size_t operator()(const ::nos::Nullable<T>& r) const { return std::hash<T*>{}(r.GetPtr()); }
+};
+} // namespace std

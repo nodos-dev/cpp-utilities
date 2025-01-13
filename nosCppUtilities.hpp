@@ -273,6 +273,17 @@ struct Nullable
 		return *this;
 	}
 
+	template<typename U>
+		requires std::is_convertible_v<U*, T*>
+	Nullable& operator=(U& other)
+	{
+		Ptr = &other;
+#ifndef NDEBUG
+		Checked = true;
+#endif
+		return *this;
+	}
+
 	template <typename U>
 	requires std::is_convertible_v<U*, T*>
 	bool operator==(Nullable<U const> other) const

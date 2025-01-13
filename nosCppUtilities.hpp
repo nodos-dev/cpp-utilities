@@ -284,9 +284,11 @@ struct Nullable
 		return *this;
 	}
 
+	bool operator==(Nullable<T> const& other) const { return Ptr == other.GetPtr(); }
+
 	template <typename U>
 	requires std::is_convertible_v<U*, T*>
-	bool operator==(Nullable<U const> other) const
+	bool operator==(Nullable<U const> const& other) const
 	{
 		return Ptr == other.GetPtr();
 	}
@@ -303,9 +305,9 @@ struct Nullable
 		return Ptr == other;
 	}
 
-	bool operator==(const T& other) const
+	bool operator==(const T& right) const 
 	{
-		return Ptr == &other;
+		return GetPtr() == &right; 
 	}
 
 	T* operator->() const

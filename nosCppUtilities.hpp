@@ -236,14 +236,14 @@ struct Nullable
 	Nullable(T& t) :
 		Ptr(&t)
 #ifndef NDEBUG
-		, Checked(true)
+		  , ValueChecked(true)
 #endif
 	{}
 
 	operator bool() const
 	{
 #ifndef NDEBUG
-		Checked = true;
+		ValueChecked = true;
 #endif
 		return Ptr;
 	}
@@ -279,7 +279,7 @@ struct Nullable
 	{
 		Ptr = &other;
 #ifndef NDEBUG
-		Checked = true;
+		ValueChecked = true;
 #endif
 		return *this;
 	}
@@ -312,19 +312,19 @@ struct Nullable
 
 	T* operator->() const
 	{
-		assert(Checked);
+		assert(ValueChecked);
 		return Ptr;
 	}
 
 	T& operator*() const
 	{
-		assert(Checked);
+		assert(ValueChecked);
 		return *Ptr;
 	}
 
 	operator T&() const
 	{
-		assert(Checked);
+		assert(ValueChecked);
 		return *Ptr;
 	}
 
@@ -333,10 +333,15 @@ struct Nullable
 		return Ptr;
 	}
 
+	T& Checked() const
+	{ 
+		return *Ptr;
+	}
+
 protected:
 	T* Ptr;
 #ifndef NDEBUG
-	mutable bool Checked = false;
+	mutable bool ValueChecked = false;
 #endif
 };
 

@@ -233,6 +233,13 @@ template <typename T>
 struct Nullable
 {
 	Nullable(T* t) : Ptr(t) {}
+	Nullable(T& t) :
+		Ptr(&t)
+#ifndef NDEBUG
+		, Checked(true)
+#endif
+	{}
+
 	operator bool() const
 	{
 #ifndef NDEBUG
@@ -297,6 +304,12 @@ struct Nullable
 	}
 
 	T& operator*() const
+	{
+		assert(Checked);
+		return *Ptr;
+	}
+
+	operator T&() const
 	{
 		assert(Checked);
 		return *Ptr;
@@ -407,7 +420,7 @@ struct CircularIndex
     CircularIndex& operator=(T max)
     {
         Val = 0;
-		this->max = (uint64_t)max;
+		this->Max = (uint64_t)max;
         return *this;
     }
 

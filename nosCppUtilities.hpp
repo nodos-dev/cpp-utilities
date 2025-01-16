@@ -520,7 +520,9 @@ private:
 template<typename T>
 struct Result
 {
-	Result(T&& t) : Value(std::forward<T>(t)) {}
+	template <typename U>
+		requires std::is_convertible_v<U, T>
+	Result(U&& t) : Value(std::forward<U>(t)) {}
 	Result(std::string s) : Value(std::move(s)) {}
 	Result(const char* s) : Value(std::string(s)) {}
 

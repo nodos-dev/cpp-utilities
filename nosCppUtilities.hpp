@@ -412,16 +412,26 @@ inline std::vector<uint8_t> ReadSpirv(std::string file)
 	return spirv;
 }
 
+
+
 template <class T>
 struct SharedFactory : std::enable_shared_from_this<T>
 {
     SharedFactory()                     = default;
-    SharedFactory(SharedFactory const&) = delete;
+	SharedFactory(SharedFactory const&) = delete;
+
+	class MakeSharedEnabler : public T
+	{
+	public:
+		template <class... Args>
+		MakeSharedEnabler(Args&&... args) : T(std::forward<Args>(args)...) {}
+	};
 
     template <class... Args>
-    requires(std::is_constructible_v<T, Args...>) static rc<T> New(Args&&... args)
+    requires(std::is_constructible_v<MakeSharedEnabler, Args...>) 
+	static rc<T> New(Args&&... args)
     {
-        return std::make_shared<T>(std::forward<Args>(args)...);
+		return std::make_shared<MakeSharedEnabler>(std::forward<Args>(args)...);;
     }
 };
 
@@ -507,6 +517,24 @@ private:
 	std::bitset<MaxEnumVal> Bits = {};
 };
 
+template<typename T>
+struct Result
+{
+	Result(T&& t) : Value(std::forward<T>(t)) {}
+	Result(std::string s) : Value(std::move(s)) {}
+	Result(const char* s) : Value(std::string(s)) {}
+
+	std::string* Error()
+	{
+		return std::get_if<std::string>(&Value);
+	};
+
+	T* Get()
+	{
+		return std::get_if<T>(&Value);
+	};
+	std::variant<T, std::string> Value;
+};
 } // namespace nos
 
 namespace std

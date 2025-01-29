@@ -41,6 +41,7 @@ namespace nos::tmp // Utils for template meta-programming
 {
 
 template <typename T, typename M> M GetMemberType(M T::*);
+template <typename T, typename M> T GetClassType(M T::*);
 template <int a, int... r>
 static constexpr int max = max<a, max<r...>>;
 template <int a, int b>

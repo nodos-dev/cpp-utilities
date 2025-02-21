@@ -537,14 +537,13 @@ struct Result
 	};
 	std::variant<T, std::string> Value;
 };
-
-inline std::filesystem::path utf8_to_path(const std::string& utf8Str)
+inline std::filesystem::path Utf8ToPath(const std::string& utf8Str)
 {
 	std::u8string u8str(utf8Str.begin(), utf8Str.end());
 	return std::filesystem::u8path(u8str);
 }
 
-inline std::string path_to_utf8(const std::filesystem::path& path)
+inline std::string PathToUtf8(const std::filesystem::path& path)
 {
 	auto pathUtf8 = path.u8string();
 	return {pathUtf8.begin(), pathUtf8.end()};

@@ -33,7 +33,6 @@
 #include <cassert>
 #include <bitset>
 #include <ranges>
-
 namespace fs = std::filesystem;
 
 
@@ -538,6 +537,18 @@ struct Result
 	};
 	std::variant<T, std::string> Value;
 };
+
+inline std::filesystem::path utf8_to_path(const std::string& utf8Str)
+{
+	std::u8string u8str(utf8Str.begin(), utf8Str.end());
+	return std::filesystem::u8path(u8str);
+}
+
+inline std::string path_to_utf8(const std::filesystem::path& path)
+{
+	auto pathUtf8 = path.u8string();
+	return {pathUtf8.begin(), pathUtf8.end()};
+}
 } // namespace nos
 
 namespace std
@@ -553,4 +564,5 @@ struct hash<::nos::Nullable<T>>
 {
 	std::size_t operator()(const ::nos::Nullable<T>& r) const { return std::hash<T*>{}(r.GetPtr()); }
 };
+
 } // namespace std

@@ -540,7 +540,7 @@ struct Result
 inline std::filesystem::path Utf8ToPath(const std::string& utf8Str)
 {
 	std::u8string u8str(utf8Str.begin(), utf8Str.end());
-	return std::filesystem::u8path(u8str);
+	return std::filesystem::path(u8str);
 }
 
 inline std::string PathToUtf8(const std::filesystem::path& path)

@@ -1,3 +1,7 @@
+if (TARGET nosCppUtilities)
+    return()
+endif()
+
 project(nosCppUtilities LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)

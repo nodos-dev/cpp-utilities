@@ -548,6 +548,17 @@ inline std::string PathToUtf8(const std::filesystem::path& path)
 	auto pathUtf8 = path.u8string();
 	return {pathUtf8.begin(), pathUtf8.end()};
 }
+
+#ifdef __cpp_lib_move_only_function
+    // C++26 feature: move_only_function is available
+    template <typename Signature>
+    using move_only_function = move_only_function<Signature>;
+#else
+    // Fallback to std::function
+    template <typename Signature>
+    using move_only_function = std::function<Signature>;
+#endif
+
 } // namespace nos
 
 namespace std

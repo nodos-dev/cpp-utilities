@@ -517,26 +517,45 @@ private:
 	std::bitset<MaxEnumVal> Bits = {};
 };
 
-template<typename T>
+template<typename T, typename E = std::string>
 struct Result
 {
 	template <typename U>
 		requires std::is_convertible_v<U, T>
 	Result(U&& t) : Value(std::forward<U>(t)) {}
-	Result(std::string s) : Value(std::move(s)) {}
-	Result(const char* s) : Value(std::string(s)) {}
+	template <typename U>
+		requires std::is_convertible_v<U, E>
+	Result(U&& e) : Value(std::forward<U>(e)) {}
 
-	std::string* Error()
+	E* Error()
 	{
-		return std::get_if<std::string>(&Value);
-	};
+		return std::get_if<E>(&Value);
+	}
 
-	T* Get()
+	T* Ok()
 	{
 		return std::get_if<T>(&Value);
-	};
-	std::variant<T, std::string> Value;
+	}
+
+	T& operator*()
+	{
+		return *Ok();
+	}
+
+	[[deprecated("Use Ok() instead")]]
+	T* Get()
+	{
+		return Ok();
+	}
+
+	operator bool() const noexcept
+	{ 
+		return std::holds_alternative<T>(Value); 
+	}
+
+	std::variant<T, E> Value;
 };
+
 inline std::filesystem::path Utf8ToPath(const std::string& utf8Str)
 {
 	std::u8string u8str(utf8Str.begin(), utf8Str.end());

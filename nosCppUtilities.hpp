@@ -553,6 +553,13 @@ struct Result
 		return std::holds_alternative<T>(Value); 
 	}
 
+	std::optional<T> Unwrap()
+	{
+		if (auto ok = Ok())
+			return std::move(*ok);
+		return std::nullopt;
+	}
+
 	std::variant<T, E> Value;
 };
 

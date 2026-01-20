@@ -536,12 +536,12 @@ struct Result
 	using TError = Error<E>;
 
 	template <typename U>
-		requires std::is_convertible_v<U, T>
+		requires std::is_convertible_v<U, T> && !std::is_convertible_v<U, E>
 	Result(U&& t) : Value(TOk{T{std::forward<U>(t)}})
 	{
 	}
 	template <typename U>
-		requires std::is_convertible_v<U, E>
+		requires std::is_convertible_v<U, E> && !std::is_convertible_v<U, T>
 	Result(U&& e) : Value(TError{E{std::forward<U>(e)}})
 	{
 	}

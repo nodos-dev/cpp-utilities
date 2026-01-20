@@ -517,24 +517,58 @@ private:
 	std::bitset<MaxEnumVal> Bits = {};
 };
 
+template<typename T>
+struct Ok
+{
+	T Value;
+};
+
+template<typename E>
+struct Error
+{
+	E Err;
+};
+
 template<typename T, typename E = std::string>
 struct Result
 {
+	using TOk = Ok<T>;
+	using TError = Error<E>;
+
 	template <typename U>
 		requires std::is_convertible_v<U, T>
-	Result(U&& t) : Value(std::forward<U>(t)) {}
+	Result(U&& t) : Value(TOk{T{std::forward<U>(t)}})
+	{
+	}
 	template <typename U>
 		requires std::is_convertible_v<U, E>
-	Result(U&& e) : Value(std::forward<U>(e)) {}
+	Result(U&& e) : Value(TError{E{std::forward<U>(e)}})
+	{
+	}
+
+	template <typename U>
+		requires std::is_convertible_v<U, T>
+	Result(Ok<U>&& ok) : Value(TOk(std::forward<U>(ok.Value)))
+	{
+	}
+	template <typename U>
+		requires std::is_convertible_v<U, E>
+	Result(Error<U>&& err) : Value(TError(std::forward<U>(err.Err)))
+	{
+	}
 
 	E* Error()
 	{
-		return std::get_if<E>(&Value);
+		if (auto err = std::get_if<TError>(&Value))
+			return &err->Err;
+		return nullptr;
 	}
 
 	T* Ok()
 	{
-		return std::get_if<T>(&Value);
+		if (auto ok = std::get_if<TOk>(&Value))
+			return &ok->Value;
+		return nullptr;
 	}
 
 	T& operator*()
@@ -550,7 +584,7 @@ struct Result
 
 	operator bool() const noexcept
 	{ 
-		return std::holds_alternative<T>(Value); 
+		return std::holds_alternative<TOk>(Value); 
 	}
 
 	std::optional<T> Unwrap()
@@ -560,7 +594,75 @@ struct Result
 		return std::nullopt;
 	}
 
-	std::variant<T, E> Value;
+	template<typename T2, typename F>
+		requires std::is_convertible_v<std::invoke_result_t<F, T&&>, Result<T2, E>>
+	Result<T2, E> AndThen(F&& func)
+	{
+		if (auto ok = std::get_if<T>(&Value))
+		{
+			return std::invoke(std::forward<F>(func), std::move(*ok));
+		}
+		else
+		{
+			auto err = std::get_if<E>(&Value);
+			return Result<T2, E>(std::move(*err));
+		}
+	}
+
+	template<typename E2, typename Func>
+		requires std::is_convertible_v<std::invoke_result_t<Func, E&&>, Result<T, E2>>
+	Result<T, E2> OrElse(Func&& func)
+	{
+		if (auto ok = Ok())
+		{
+			return Result<T, E2>(std::move(*ok));
+		}
+		else
+		{
+			auto err = Error();
+			return std::invoke(func, std::move(*err));
+		}
+	}
+
+	template<typename E2, typename Func>
+		requires std::is_convertible_v<std::invoke_result_t<Func, E&&>, E2>
+	Result<T, E2> MapErr(Func&& func)
+	{
+		if (auto ok = Ok())
+		{
+			return Result<T, E2>(std::move(*ok));
+		}
+		else
+		{
+			auto err = Error();
+			return Result<T, E2>(std::invoke(std::forward<Func>(func), std::move(*err)));
+		}
+	}
+
+	template<typename T2, typename E2, typename Func>
+		requires std::is_convertible_v<std::invoke_result_t<Func, Result<T, E>&&>, Result<T2, E2>>
+	Result<T2, E2> Transform(Func&& func)
+	{
+		return std::invoke(std::forward<Func>(func), std::move(*this));
+	}
+
+	template<typename FuncOk, typename FuncErr>
+		requires std::is_invocable_v<FuncOk, T&&> && std::is_invocable_v<FuncErr, E&&>
+	void Handle(FuncOk&& onOk, FuncErr&& onErr)
+	{
+		if (auto ok = Ok())
+		{
+			std::invoke(std::forward<FuncOk>(onOk), std::move(*ok));
+		}
+		else
+		{
+			auto err = Error();
+			std::invoke(std::forward<FuncErr>(onErr), std::move(*err));
+		}
+	}
+
+
+	std::variant<nos::Ok<T>, nos::Error<E>> Value;
 };
 
 inline std::filesystem::path Utf8ToPath(const std::string& utf8Str)

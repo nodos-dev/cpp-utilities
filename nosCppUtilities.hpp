@@ -517,24 +517,58 @@ private:
 	std::bitset<MaxEnumVal> Bits = {};
 };
 
+template<typename T>
+struct Ok
+{
+	T Value;
+};
+
+template<typename E>
+struct Error
+{
+	E Err;
+};
+
 template<typename T, typename E = std::string>
 struct Result
 {
+	using TOk = Ok<T>;
+	using TError = Error<E>;
+
+	template <typename U>
+		requires std::is_convertible_v<U, T> && !std::is_convertible_v<U, E>
+											Result(U && t) : Value(TOk{T{std::forward<U>(t)}})
+	{
+	}
+	template <typename U>
+		requires std::is_convertible_v<U, E> && !std::is_convertible_v<U, T>
+											Result(U && e) : Value(TError{E{std::forward<U>(e)}})
+	{
+	}
+
 	template <typename U>
 		requires std::is_convertible_v<U, T>
-	Result(U&& t) : Value(std::forward<U>(t)) {}
+	Result(Ok<U>&& ok) : Value(TOk{std::forward<U>(ok.Value)})
+	{
+	}
 	template <typename U>
 		requires std::is_convertible_v<U, E>
-	Result(U&& e) : Value(std::forward<U>(e)) {}
+	Result(Error<U>&& err) : Value(TError{std::forward<U>(err.Err)})
+	{
+	}
 
 	E* Error()
 	{
-		return std::get_if<E>(&Value);
+		if (auto err = std::get_if<TError>(&Value))
+			return &err->Err;
+		return nullptr;
 	}
 
 	T* Ok()
 	{
-		return std::get_if<T>(&Value);
+		if (auto ok = std::get_if<TOk>(&Value))
+			return &ok->Value;
+		return nullptr;
 	}
 
 	T& operator*()
@@ -550,7 +584,7 @@ struct Result
 
 	operator bool() const noexcept
 	{ 
-		return std::holds_alternative<T>(Value); 
+		return std::holds_alternative<TOk>(Value); 
 	}
 
 	std::optional<T> Unwrap()
@@ -560,7 +594,7 @@ struct Result
 		return std::nullopt;
 	}
 
-	std::variant<T, E> Value;
+	std::variant<nos::Ok<T>, nos::Error<E>> Value;
 };
 
 inline std::filesystem::path Utf8ToPath(const std::string& utf8Str)

@@ -587,13 +587,6 @@ struct Result
 		return std::holds_alternative<TOk>(Value); 
 	}
 
-	std::optional<T> Unwrap()
-	{
-		if (auto ok = Ok())
-			return std::move(*ok);
-		return std::nullopt;
-	}
-
 	std::variant<nos::Ok<T>, nos::Error<E>> Value;
 };
 
